@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "oracle"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ProviderStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum DocumentLabel {
+  LICENSE
+  DRIVER_LICENSE
+  SSN_CARD
+  CERTIFICATES
+  MEDICAL_CARD
+  RESUME
+}
+
+model Agency {
+  id        Int        @id @default(autoincrement())
+  name      String
+  providers Provider[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Provider {
+  id           Int               @id @default(autoincrement())
+  fullName     String
+  dateOfBirth  DateTime
+  gender       Gender
+  phone        String
+  email        String
+  profileImage String?
+  street       String
+  areaCity     String
+  notes        String?
+  status       ProviderStatus   @default(ACTIVE)
+  agency        Agency           @relation(fields: [agencyId], references: [id])
+  agencyId      Int
+  skills        ProviderSkill[]
+  zipCodes      ProviderZipCode[]
+  licenses      License[]
+  documents     Document[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model ProviderSkill {
+  id         Int      @id @default(autoincrement())
+  skill      String
+  provider   Provider @relation(fields: [providerId], references: [id])
+  providerId Int
+}
+
+model ProviderZipCode {
+  id         Int      @id @default(autoincrement())
+  zipCode    String
+  provider   Provider @relation(fields: [providerId], references: [id])
+  providerId Int
+}
+
+model License {
+  id             Int      @id @default(autoincrement())
+  licenseType    String
+  licenseNumber  String
+  stateIssued    String
+  expirationDate DateTime
+  provider       Provider @relation(fields: [providerId], references: [id])
+  providerId     Int
+}
+
+model Document {
+  id         Int           @id @default(autoincrement())
+  label      DocumentLabel
+  fileName   String
+  filePath   String
+  provider   Provider      @relation(fields: [providerId], references: [id])
+  providerId Int
+  uploadedAt DateTime      @default(now())
+}

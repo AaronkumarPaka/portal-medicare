@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: wonese_staff_portal
+      MYSQL_USER: wonese
+      MYSQL_PASSWORD: wonese123
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
