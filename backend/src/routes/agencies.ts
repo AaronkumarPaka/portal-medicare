@@ -11,6 +11,11 @@ const defaultAgencyNames = [
   'TruMed Home Health Services',
   'TruLife Home Health Services',
 ];
+const defaultAgencyResponse = defaultAgencyNames.map((name, index) => ({
+  id: index + 1,
+  name,
+  providerCount: 0,
+}));
 
 const ensureDefaultAgencies = async () => {
   const existingAgencies = await prisma.agency.findMany({
@@ -29,20 +34,30 @@ const ensureDefaultAgencies = async () => {
 };
 
 router.get('/', async (_req, res) => {
-  await ensureDefaultAgencies();
+  if (!process.env.DATABASE_URL) {
+    res.json(defaultAgencyResponse);
+    return;
+  }
 
-  const agencies = await prisma.agency.findMany({
-    include: { providers: true },
-    orderBy: { name: 'asc' },
-  });
+  try {
+    await ensureDefaultAgencies();
 
-  const result = agencies.map((agency: { id: number; name: string; providers: { id: number }[] }) => ({
-    id: agency.id,
-    name: agency.name,
-    providerCount: agency.providers.length,
-  }));
+    const agencies = await prisma.agency.findMany({
+      include: { providers: true },
+      orderBy: { name: 'asc' },
+    });
 
-  res.json(result);
+    const result = agencies.map((agency: { id: number; name: string; providers: { id: number }[] }) => ({
+      id: agency.id,
+      name: agency.name,
+      providerCount: agency.providers.length,
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Unable to load agencies from database, serving defaults instead.', error);
+    res.json(defaultAgencyResponse);
+  }
 });
 
 export default router;

@@ -14,6 +14,11 @@ const parseStrings = (value: any) => {
 };
 
 router.get('/', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    res.json([]);
+    return;
+  }
+
   const { search, agencyId, skill, city, zip } = req.query;
 
   const filters: any = {
@@ -58,8 +63,13 @@ router.get('/', async (req, res) => {
     orderBy: { fullName: 'asc' },
   };
 
-  const providers = await prisma.provider.findMany(filters as any);
-  res.json(providers);
+  try {
+    const providers = await prisma.provider.findMany(filters as any);
+    res.json(providers);
+  } catch (error) {
+    console.error('Unable to load providers from database, returning an empty list instead.', error);
+    res.json([]);
+  }
 });
 
 router.get('/:id', async (req, res) => {
