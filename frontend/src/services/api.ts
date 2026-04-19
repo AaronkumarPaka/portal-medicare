@@ -1,29 +1,42 @@
 import axios from 'axios';
 import { Agency, LicensePayload, Provider, ProviderCreatePayload } from '../types';
 
-const resolveApiBaseUrl = () => {
-  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '');
+const localHosts = new Set(['localhost', '127.0.0.1']);
+const isBrowser = typeof window !== 'undefined';
+const isLocalHost = isBrowser && localHosts.has(window.location.hostname);
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '');
 
+export const apiConfigurationError =
+  !configuredBaseUrl && !isLocalHost
+    ? 'VITE_API_BASE_URL is missing in Vercel. Set it to your Render backend URL ending with /api.'
+    : null;
+
+const resolveApiBaseUrl = () => {
   if (configuredBaseUrl) {
     return configuredBaseUrl;
   }
 
-  if (typeof window === 'undefined') {
+  if (!isBrowser) {
     return 'http://localhost:4000/api';
   }
 
-  const localHosts = new Set(['localhost', '127.0.0.1']);
-
-  if (localHosts.has(window.location.hostname)) {
+  if (isLocalHost) {
     return 'http://localhost:4000/api';
   }
 
-  console.warn('VITE_API_BASE_URL is not set. Configure it in Vercel to point to your Render backend, for example https://your-service.onrender.com/api');
-  return '/api';
+  return 'http://invalid.local/api';
 };
 
 const api = axios.create({
   baseURL: resolveApiBaseUrl(),
+});
+
+api.interceptors.request.use((config) => {
+  if (apiConfigurationError) {
+    return Promise.reject(new Error(apiConfigurationError));
+  }
+
+  return config;
 });
 
 export const fetchAgencies = async (): Promise<Agency[]> => {

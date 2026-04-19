@@ -34,7 +34,7 @@ function Providers() {
       })
       .catch((error) => {
         console.error(error);
-        setAgenciesError('Unable to load agencies. Check the backend API connection.');
+        setAgenciesError(error instanceof Error ? error.message : 'Unable to load agencies. Check the backend API connection.');
       })
       .finally(() => {
         setAgenciesLoading(false);
