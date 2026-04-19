@@ -12,9 +12,16 @@ function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">WONESE Healthcare</p>
-            <h1 className="text-2xl font-semibold">Staff Portal</h1>
+          <div className="flex items-center gap-4">
+            <img
+              src="https://wonese.com/images/logo.png"
+              alt="Wonese Healthcare logo"
+              className="h-12 w-auto shrink-0 object-contain"
+            />
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Healthcare Staffing</p>
+              <h1 className="text-2xl font-semibold">Staff Portal</h1>
+            </div>
           </div>
           <nav className="flex gap-2">
             <NavLink to="/" className={navClass} end>

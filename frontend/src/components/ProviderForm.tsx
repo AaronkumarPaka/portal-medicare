@@ -72,6 +72,23 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
     }
   }, [provider]);
 
+  useEffect(() => {
+    if (provider || agencies.length === 0) {
+      return;
+    }
+
+    setForm((current) => {
+      if (current.agencyId && agencies.some((agency) => agency.id === current.agencyId)) {
+        return current;
+      }
+
+      return {
+        ...current,
+        agencyId: agencies[0].id,
+      };
+    });
+  }, [agencies, provider]);
+
   const subtitle = provider ? 'Edit provider details and documents' : 'Create a new provider record';
   const title = provider ? 'Edit Provider' : 'New Provider';
 
@@ -189,13 +206,18 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
               <select
                 value={form.agencyId}
                 onChange={(event) => setForm({ ...form, agencyId: Number(event.target.value) })}
+                disabled={agencies.length === 0}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-brand-500"
               >
-                {agencies.map((agency) => (
-                  <option key={agency.id} value={agency.id}>
-                    {agency.name}
-                  </option>
-                ))}
+                {agencies.length === 0 ? (
+                  <option value={0}>Loading agencies...</option>
+                ) : (
+                  agencies.map((agency) => (
+                    <option key={agency.id} value={agency.id}>
+                      {agency.name}
+                    </option>
+                  ))
+                )}
               </select>
             </label>
             <label className="space-y-2 text-sm text-slate-700">

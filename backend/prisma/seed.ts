@@ -11,16 +11,23 @@ async function main() {
     'TruMed Home Health Services',
     'TruLife Home Health Services',
   ];
+  const existingAgencies = await prisma.agency.findMany({
+    select: { name: true },
+  });
+  const existingNames = new Set(existingAgencies.map((agency) => agency.name));
+  const missingAgencies = agencies.filter((name) => !existingNames.has(name));
 
-  for (const name of agencies) {
-    await prisma.agency.upsert({
-      where: { name },
-      update: {},
-      create: { name },
+  if (missingAgencies.length > 0) {
+    await prisma.agency.createMany({
+      data: missingAgencies.map((name) => ({ name })),
     });
   }
 
-  console.log('Seeded agencies successfully.');
+  console.log(
+    missingAgencies.length > 0
+      ? `Seeded ${missingAgencies.length} agencies successfully.`
+      : 'Agencies already exist.',
+  );
 }
 
 main()
