@@ -6,7 +6,16 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 
-app.get("/", async (req, res) => {
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+});
+
+// your routes below
+app.get("/", (req, res) => {
   res.send("Backend running");
 });
 
