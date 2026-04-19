@@ -8,6 +8,8 @@ const skillOptions = ['Registered Nurse (RN)', 'Licensed Practical Nurse (LPN)',
 function Providers() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [agenciesLoading, setAgenciesLoading] = useState(true);
+  const [agenciesError, setAgenciesError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [agencyId, setAgencyId] = useState('');
   const [skill, setSkill] = useState('');
@@ -22,8 +24,25 @@ function Providers() {
       .catch(console.error);
   };
 
+  const loadAgencies = () => {
+    setAgenciesLoading(true);
+    setAgenciesError(null);
+
+    fetchAgencies()
+      .then((result) => {
+        setAgencies(result);
+      })
+      .catch((error) => {
+        console.error(error);
+        setAgenciesError('Unable to load agencies. Check the backend API connection.');
+      })
+      .finally(() => {
+        setAgenciesLoading(false);
+      });
+  };
+
   useEffect(() => {
-    fetchAgencies().then(setAgencies).catch(console.error);
+    loadAgencies();
     loadProviders();
   }, []);
 
@@ -199,6 +218,8 @@ function Providers() {
         <ProviderForm
           providers={providers}
           agencies={agencies}
+          agenciesLoading={agenciesLoading}
+          agenciesError={agenciesError}
           provider={selectedProvider}
           onClose={() => setIsFormOpen(false)}
           onSaved={() => {

@@ -14,13 +14,15 @@ const documentLabels = [
 
 interface Props {
   agencies: Agency[];
+  agenciesLoading: boolean;
+  agenciesError: string | null;
   provider: Provider | null;
   providers: Provider[];
   onSaved: () => void;
   onClose: () => void;
 }
 
-function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
+function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSaved, onClose }: Props) {
   const [form, setForm] = useState<ProviderCreatePayload>({
     fullName: '',
     dateOfBirth: '',
@@ -206,10 +208,12 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
               <select
                 value={form.agencyId}
                 onChange={(event) => setForm({ ...form, agencyId: Number(event.target.value) })}
-                disabled={agencies.length === 0}
+                disabled={agenciesLoading || Boolean(agenciesError) || agencies.length === 0}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-brand-500"
               >
-                {agencies.length === 0 ? (
+                {agenciesError ? (
+                  <option value={0}>Unable to load agencies</option>
+                ) : agenciesLoading || agencies.length === 0 ? (
                   <option value={0}>Loading agencies...</option>
                 ) : (
                   agencies.map((agency) => (
@@ -219,6 +223,7 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
                   ))
                 )}
               </select>
+              {agenciesError && <p className="text-xs text-rose-600">{agenciesError}</p>}
             </label>
             <label className="space-y-2 text-sm text-slate-700">
               Status
