@@ -1,10 +1,17 @@
 const express = require("express");
-const app = express();
+const { PrismaClient } = require("@prisma/client");
 
-app.get("/", (req, res) => {
-  res.send("Backend is running");
+const app = express();
+const prisma = new PrismaClient();
+
+app.use(express.json());
+
+app.get("/", async (req, res) => {
+  res.send("Backend running");
 });
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
