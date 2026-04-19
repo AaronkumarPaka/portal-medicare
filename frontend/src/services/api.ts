@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Agency, LicensePayload, Provider, ProviderCreatePayload } from '../types';
 
 const resolveApiBaseUrl = () => {
-  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '');
 
   if (configuredBaseUrl) {
     return configuredBaseUrl;
@@ -13,7 +13,13 @@ const resolveApiBaseUrl = () => {
   }
 
   const localHosts = new Set(['localhost', '127.0.0.1']);
-  return localHosts.has(window.location.hostname) ? 'http://localhost:4000/api' : '/api';
+
+  if (localHosts.has(window.location.hostname)) {
+    return 'http://localhost:4000/api';
+  }
+
+  console.warn('VITE_API_BASE_URL is not set. Configure it in Vercel to point to your Render backend, for example https://your-service.onrender.com/api');
+  return '/api';
 };
 
 const api = axios.create({
