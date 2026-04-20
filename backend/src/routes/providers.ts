@@ -14,6 +14,12 @@ const parseStrings = (value: any) => {
 };
 
 const resolveAgencyRelation = async (agencyId: any, agencyName: any) => {
+  const normalizedAgencyId = Number(agencyId);
+
+  if (Number.isInteger(normalizedAgencyId) && normalizedAgencyId > 0) {
+    return { connect: { id: normalizedAgencyId } };
+  }
+
   const normalizedAgencyName = typeof agencyName === 'string' ? agencyName.trim() : '';
 
   if (normalizedAgencyName) {
@@ -183,7 +189,7 @@ router.post('/', async (req, res) => {
   } catch (error: any) {
     console.error('Unable to create provider.', error);
     res.status(500).json({
-      message: error?.message || 'Unable to create provider.',
+      message: 'Unable to create provider.',
     });
   }
 });
@@ -256,7 +262,7 @@ router.put('/:id', async (req, res) => {
   } catch (error: any) {
     console.error('Unable to update provider.', error);
     res.status(500).json({
-      message: error?.message || 'Unable to update provider.',
+      message: 'Unable to update provider.',
     });
   }
 });
@@ -295,7 +301,7 @@ router.post('/:id/documents', upload.array('documents', 10), async (req, res) =>
   } catch (error: any) {
     console.error('Unable to upload documents.', error);
     res.status(500).json({
-      message: error?.message || 'Unable to upload documents.',
+      message: 'Unable to upload documents.',
     });
   }
 });
