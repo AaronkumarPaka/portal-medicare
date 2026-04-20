@@ -46,6 +46,7 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
   const [documentFiles, setDocumentFiles] = useState<File[]>([]);
   const [documentLabel, setDocumentLabel] = useState(documentLabels[0]);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     if (provider) {
@@ -97,11 +98,12 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
 
   const handleSave = async () => {
     if (!form.fullName || !form.dateOfBirth || !form.phone || !form.email || !form.agencyName) {
-      alert('Please complete required fields.');
+      setSubmitError('Please complete required fields.');
       return;
     }
 
     setLoading(true);
+    setSubmitError('');
     try {
       if (provider) {
         await updateProvider(provider.id, form);
@@ -123,7 +125,7 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
           : error instanceof Error
             ? error.message
             : 'Unable to save provider.';
-      alert(message);
+      setSubmitError(message);
     } finally {
       setLoading(false);
     }
@@ -382,6 +384,9 @@ function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            {submitError && (
+              <p className="text-sm text-rose-600 sm:mr-auto sm:self-center">{submitError}</p>
+            )}
             <button
               type="button"
               className="rounded-2xl border border-slate-200 px-5 py-3 text-sm text-slate-700 hover:bg-slate-100"

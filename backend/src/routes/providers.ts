@@ -14,28 +14,36 @@ const parseStrings = (value: any) => {
 };
 
 const resolveAgencyRelation = async (agencyId: any, agencyName: any) => {
+  const normalizedAgencyName = typeof agencyName === 'string' ? agencyName.trim() : '';
   const normalizedAgencyId = Number(agencyId);
+
+  if (normalizedAgencyName) {
+    try {
+      const existingAgencies = await prisma.agency.findMany({
+        where: { name: normalizedAgencyName },
+        select: { id: true },
+        take: 1,
+      });
+
+      if (existingAgencies.length > 0) {
+        return { connect: { id: existingAgencies[0].id } };
+      }
+
+      return { create: { name: normalizedAgencyName } };
+    } catch (error) {
+      console.error('Unable to resolve agency by name, falling back to agencyId.', error);
+    }
+  }
 
   if (Number.isInteger(normalizedAgencyId) && normalizedAgencyId > 0) {
     return { connect: { id: normalizedAgencyId } };
   }
 
-  const normalizedAgencyName = typeof agencyName === 'string' ? agencyName.trim() : '';
-
   if (normalizedAgencyName) {
-    const existingAgency = await prisma.agency.findFirst({
-      where: { name: normalizedAgencyName },
-      select: { id: true },
-    });
-
-    if (existingAgency) {
-      return { connect: { id: existingAgency.id } };
-    }
-
     return { create: { name: normalizedAgencyName } };
   }
 
-  return { connect: { id: Number(agencyId) } };
+  throw new Error('Agency is required.');
 };
 
 router.get('/', async (req, res) => {
