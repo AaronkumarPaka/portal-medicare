@@ -6,11 +6,6 @@ const isBrowser = typeof window !== 'undefined';
 const isLocalHost = isBrowser && localHosts.has(window.location.hostname);
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()?.replace(/\/+$/, '');
 
-export const apiConfigurationError =
-  !configuredBaseUrl && !isLocalHost
-    ? 'VITE_API_BASE_URL is missing in Vercel. Set it to your Render backend URL ending with /api.'
-    : null;
-
 const resolveApiBaseUrl = () => {
   if (configuredBaseUrl) {
     return configuredBaseUrl;
@@ -24,19 +19,11 @@ const resolveApiBaseUrl = () => {
     return 'http://localhost:4000/api';
   }
 
-  return 'http://invalid.local/api';
+  return '/api';
 };
 
 const api = axios.create({
   baseURL: resolveApiBaseUrl(),
-});
-
-api.interceptors.request.use((config) => {
-  if (apiConfigurationError) {
-    return Promise.reject(new Error(apiConfigurationError));
-  }
-
-  return config;
 });
 
 export const fetchAgencies = async (): Promise<Agency[]> => {
