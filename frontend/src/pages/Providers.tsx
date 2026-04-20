@@ -4,7 +4,14 @@ import { fetchAgencies, fetchProviders, deleteProvider } from '../services/api';
 import ProviderForm from '../components/ProviderForm';
 import { defaultAgencies } from '../constants/agencies';
 
-const skillOptions = ['Registered Nurse (RN)', 'Licensed Practical Nurse (LPN)', 'Physical Therapist (PT)', 'Physical Therapist Assistant (PTA)', 'Occupational Therapist (OT)', 'Occupational Therapist Assistant (OCTA)'];
+const skillOptions = [
+  'Registered Nurse (RN)',
+  'Licensed Practical Nurse (LPN)',
+  'Physical Therapist (PT)',
+  'Physical Therapist Assistant (PTA)',
+  'Occupational Therapist (OT)',
+  'Occupational Therapist Assistant (OCTA)',
+];
 
 function Providers() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -30,9 +37,7 @@ function Providers() {
           setAgencies(result);
         }
       })
-      .catch((error) => {
-        console.error(error);
-      });
+      .catch(console.error);
   };
 
   useEffect(() => {
@@ -60,7 +65,9 @@ function Providers() {
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Providers</p>
           <h2 className="text-3xl font-semibold">Manage your service providers</h2>
-          <p className="mt-2 text-sm text-slate-600">Search providers, filter by agency, skills, location, and keep staff data up to date.</p>
+          <p className="mt-2 text-sm text-slate-600">
+            Search providers, filter by agency, skills, location, and keep staff data up to date.
+          </p>
         </div>
         <button
           type="button"
@@ -103,9 +110,9 @@ function Providers() {
             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500"
           >
             <option value="">All agencies</option>
-            {agencies.map((agency) => (
-              <option key={agency.name} value={agency.name}>
-                {agency.name}
+            {agencies.map((item) => (
+              <option key={item.name} value={item.name}>
+                {item.name}
               </option>
             ))}
           </select>
@@ -168,7 +175,9 @@ function Providers() {
                       {provider.skills.map((item) => item.skill).join(', ')}
                     </td>
                     <td className="px-6 py-4 align-top">
-                      {provider.areaCity} · {provider.zipCodes.map((item) => item.zipCode).join(', ')}
+                      {provider.areaCity}
+                      {' · '}
+                      {provider.zipCodes.map((item) => item.zipCode).join(', ')}
                     </td>
                     <td className="px-6 py-4 align-top">
                       <span
@@ -210,10 +219,7 @@ function Providers() {
 
       {isFormOpen && (
         <ProviderForm
-          providers={providers}
           agencies={agencies}
-          agenciesLoading={false}
-          agenciesError={null}
           provider={selectedProvider}
           onClose={() => setIsFormOpen(false)}
           onSaved={() => {

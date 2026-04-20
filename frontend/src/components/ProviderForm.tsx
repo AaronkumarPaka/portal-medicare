@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import { Agency, LicensePayload, Provider, ProviderCreatePayload } from '../types';
 import { createProvider, updateProvider, uploadDocuments } from '../services/api';
 
@@ -14,15 +15,12 @@ const documentLabels = [
 
 interface Props {
   agencies: Agency[];
-  agenciesLoading: boolean;
-  agenciesError: string | null;
   provider: Provider | null;
-  providers: Provider[];
   onSaved: () => void;
   onClose: () => void;
 }
 
-function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSaved, onClose }: Props) {
+function ProviderForm({ agencies, provider, onSaved, onClose }: Props) {
   const [form, setForm] = useState<ProviderCreatePayload>({
     fullName: '',
     dateOfBirth: '',
@@ -119,7 +117,13 @@ function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSa
       onSaved();
     } catch (error) {
       console.error(error);
-      alert('Unable to save provider.');
+      const message =
+        axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : error instanceof Error
+            ? error.message
+            : 'Unable to save provider.';
+      alert(message);
     } finally {
       setLoading(false);
     }

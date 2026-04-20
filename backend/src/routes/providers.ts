@@ -100,102 +100,31 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
-  const id = Number(req.params.id);
-  const provider = await prisma.provider.findUnique({
-    where: { id },
-    include: {
-      agency: true,
-      skills: true,
-      zipCodes: true,
-      licenses: true,
-      documents: true,
-    },
-  });
-  if (!provider) return res.status(404).json({ message: 'Provider not found' });
-  res.json(provider);
+  try {
+    const id = Number(req.params.id);
+    const provider = await prisma.provider.findUnique({
+      where: { id },
+      include: {
+        agency: true,
+        skills: true,
+        zipCodes: true,
+        licenses: true,
+        documents: true,
+      },
+    });
+    if (!provider) return res.status(404).json({ message: 'Provider not found' });
+    res.json(provider);
+  } catch (error) {
+    console.error('Unable to load provider by id.', error);
+    res.status(500).json({ message: 'Unable to load provider.' });
+  }
 });
 
 router.post('/', async (req, res) => {
-  const {
-    fullName,
-    dateOfBirth,
-    gender,
-    phone,
-    email,
-    profileImage,
-    street,
-    areaCity,
-    notes,
-    status,
-    agencyId,
-    agencyName,
-    skills,
-    zipCodes,
-    license,
-  } = req.body;
-
-  const agencyRelation = await resolveAgencyRelation(agencyId, agencyName);
-
-  const provider = await prisma.provider.create({
-    data: {
+  try {
+    const {
       fullName,
-      dateOfBirth: new Date(dateOfBirth),
-      gender,
-      phone,
-      email,
-      profileImage,
-      street,
-      areaCity,
-      notes,
-      status: status || 'ACTIVE',
-      agency: agencyRelation,
-      skills: {
-        create: parseStrings(skills).map((skill: string) => ({ skill })),
-      },
-      zipCodes: {
-        create: parseStrings(zipCodes).map((zipCode: string) => ({ zipCode })),
-      },
-      licenses: {
-        create: {
-          licenseType: license?.licenseType || '',
-          licenseNumber: license?.licenseNumber || '',
-          stateIssued: license?.stateIssued || '',
-          expirationDate: new Date(license?.expirationDate || new Date()),
-        },
-      },
-    },
-  });
-
-  res.status(201).json(provider);
-});
-
-router.put('/:id', async (req, res) => {
-  const id = Number(req.params.id);
-  const {
-    fullName,
-    dateOfBirth,
-    gender,
-    phone,
-    email,
-    profileImage,
-    street,
-    areaCity,
-    notes,
-    status,
-    agencyId,
-    agencyName,
-    skills,
-    zipCodes,
-    license,
-  } = req.body;
-
-  const agencyRelation = await resolveAgencyRelation(agencyId, agencyName);
-
-  const provider = await prisma.provider.update({
-    where: { id },
-    data: {
-      fullName,
-      dateOfBirth: new Date(dateOfBirth),
+      dateOfBirth,
       gender,
       phone,
       email,
@@ -204,62 +133,182 @@ router.put('/:id', async (req, res) => {
       areaCity,
       notes,
       status,
-      agency: agencyRelation,
-      skills: {
-        deleteMany: {},
-        create: parseStrings(skills).map((skill: string) => ({ skill })),
-      },
-      zipCodes: {
-        deleteMany: {},
-        create: parseStrings(zipCodes).map((zipCode: string) => ({ zipCode })),
-      },
-      licenses: {
-        deleteMany: {},
-        create: {
-          licenseType: license?.licenseType || '',
-          licenseNumber: license?.licenseNumber || '',
-          stateIssued: license?.stateIssued || '',
-          expirationDate: new Date(license?.expirationDate || new Date()),
+      agencyId,
+      agencyName,
+      skills,
+      zipCodes,
+      license,
+    } = req.body;
+
+    const agencyRelation = await resolveAgencyRelation(agencyId, agencyName);
+
+    const provider = await prisma.provider.create({
+      data: {
+        fullName,
+        dateOfBirth: new Date(dateOfBirth),
+        gender,
+        phone,
+        email,
+        profileImage,
+        street,
+        areaCity,
+        notes,
+        status: status || 'ACTIVE',
+        agency: agencyRelation,
+        skills: {
+          create: parseStrings(skills).map((skill: string) => ({ skill })),
+        },
+        zipCodes: {
+          create: parseStrings(zipCodes).map((zipCode: string) => ({ zipCode })),
+        },
+        licenses: {
+          create: {
+            licenseType: license?.licenseType || '',
+            licenseNumber: license?.licenseNumber || '',
+            stateIssued: license?.stateIssued || '',
+            expirationDate: new Date(license?.expirationDate || new Date()),
+          },
         },
       },
-    },
-    include: { agency: true },
-  });
+      include: {
+        agency: true,
+        skills: true,
+        zipCodes: true,
+        licenses: true,
+        documents: true,
+      },
+    });
 
-  res.json(provider);
+    res.status(201).json(provider);
+  } catch (error: any) {
+    console.error('Unable to create provider.', error);
+    res.status(500).json({
+      message: error?.message || 'Unable to create provider.',
+    });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const {
+      fullName,
+      dateOfBirth,
+      gender,
+      phone,
+      email,
+      profileImage,
+      street,
+      areaCity,
+      notes,
+      status,
+      agencyId,
+      agencyName,
+      skills,
+      zipCodes,
+      license,
+    } = req.body;
+
+    const agencyRelation = await resolveAgencyRelation(agencyId, agencyName);
+
+    const provider = await prisma.provider.update({
+      where: { id },
+      data: {
+        fullName,
+        dateOfBirth: new Date(dateOfBirth),
+        gender,
+        phone,
+        email,
+        profileImage,
+        street,
+        areaCity,
+        notes,
+        status,
+        agency: agencyRelation,
+        skills: {
+          deleteMany: {},
+          create: parseStrings(skills).map((skill: string) => ({ skill })),
+        },
+        zipCodes: {
+          deleteMany: {},
+          create: parseStrings(zipCodes).map((zipCode: string) => ({ zipCode })),
+        },
+        licenses: {
+          deleteMany: {},
+          create: {
+            licenseType: license?.licenseType || '',
+            licenseNumber: license?.licenseNumber || '',
+            stateIssued: license?.stateIssued || '',
+            expirationDate: new Date(license?.expirationDate || new Date()),
+          },
+        },
+      },
+      include: {
+        agency: true,
+        skills: true,
+        zipCodes: true,
+        licenses: true,
+        documents: true,
+      },
+    });
+
+    res.json(provider);
+  } catch (error: any) {
+    console.error('Unable to update provider.', error);
+    res.status(500).json({
+      message: error?.message || 'Unable to update provider.',
+    });
+  }
 });
 
 router.delete('/:id', async (req, res) => {
-  const id = Number(req.params.id);
-  await prisma.provider.delete({ where: { id } });
-  res.status(204).send();
+  try {
+    const id = Number(req.params.id);
+    await prisma.provider.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Unable to delete provider.', error);
+    res.status(500).json({ message: 'Unable to delete provider.' });
+  }
 });
 
 router.post('/:id/documents', upload.array('documents', 10), async (req, res) => {
-  const id = Number(req.params.id);
-  const files = (req.files as Express.Multer.File[]) || [];
-  const label = String(req.body.label || 'RESUME').toUpperCase() as DocumentLabel;
+  try {
+    const id = Number(req.params.id);
+    const files = (req.files as Express.Multer.File[]) || [];
+    const label = String(req.body.label || 'RESUME').toUpperCase() as DocumentLabel;
 
-  const created = await Promise.all(
-    files.map((file) =>
-      prisma.document.create({
-        data: {
-          label,
-          fileName: file.originalname,
-          filePath: `/uploads/${file.filename}`,
-          provider: { connect: { id } },
-        },
-      })
-    )
-  );
+    const created = await Promise.all(
+      files.map((file) =>
+        prisma.document.create({
+          data: {
+            label,
+            fileName: file.originalname,
+            filePath: `/uploads/${file.filename}`,
+            provider: { connect: { id } },
+          },
+        }),
+      ),
+    );
 
-  res.status(201).json(created);
+    res.status(201).json(created);
+  } catch (error: any) {
+    console.error('Unable to upload documents.', error);
+    res.status(500).json({
+      message: error?.message || 'Unable to upload documents.',
+    });
+  }
 });
 
 router.delete('/documents/:documentId', async (req, res) => {
-  const documentId = Number(req.params.documentId);
-  await prisma.document.delete({ where: { id: documentId } });
-  res.status(204).send();
+  try {
+    const documentId = Number(req.params.documentId);
+    await prisma.document.delete({ where: { id: documentId } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Unable to delete document.', error);
+    res.status(500).json({ message: 'Unable to delete document.' });
+  }
 });
 
 export default router;

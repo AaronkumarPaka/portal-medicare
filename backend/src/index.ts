@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import agenciesRouter from './routes/agencies';
 import providersRouter from './routes/providers';
-import { upload } from './middleware/upload';
 
 const loadEnvFile = () => {
   const envPath = path.resolve(__dirname, '../.env');
