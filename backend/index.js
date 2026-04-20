@@ -10,7 +10,17 @@ const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
+
+const cors = require("cors");
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://web-portal-eight-pearl.vercel.app"
+    ],
+    credentials: true
+  })
+);
 
 // Ensure uploads folder exists
 const uploadDir = path.join(__dirname, "uploads");
