@@ -52,6 +52,7 @@ export interface ProviderCreatePayload {
   notes?: string;
   status: 'ACTIVE' | 'INACTIVE';
   agencyId: number;
+  agencyName: string;
   skills: string[];
   zipCodes: string[];
   license: LicensePayload;

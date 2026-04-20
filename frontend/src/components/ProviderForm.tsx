@@ -35,6 +35,7 @@ function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSa
     notes: '',
     status: 'ACTIVE',
     agencyId: agencies[0]?.id || 0,
+    agencyName: agencies[0]?.name || '',
     skills: [],
     zipCodes: [],
     license: {
@@ -62,6 +63,7 @@ function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSa
         notes: provider.notes || '',
         status: provider.status,
         agencyId: provider.agency.id,
+        agencyName: provider.agency.name,
         skills: provider.skills.map((item) => item.skill),
         zipCodes: provider.zipCodes.map((item) => item.zipCode),
         license: {
@@ -87,6 +89,7 @@ function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSa
       return {
         ...current,
         agencyId: agencies[0].id,
+        agencyName: agencies[0].name,
       };
     });
   }, [agencies, provider]);
@@ -95,7 +98,7 @@ function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSa
   const title = provider ? 'Edit Provider' : 'New Provider';
 
   const handleSave = async () => {
-    if (!form.fullName || !form.dateOfBirth || !form.phone || !form.email || !form.agencyId) {
+    if (!form.fullName || !form.dateOfBirth || !form.phone || !form.email || !form.agencyName) {
       alert('Please complete required fields.');
       return;
     }
@@ -206,24 +209,28 @@ function ProviderForm({ agencies, agenciesLoading, agenciesError, provider, onSa
             <label className="space-y-2 text-sm text-slate-700">
               Agency
               <select
-                value={form.agencyId}
-                onChange={(event) => setForm({ ...form, agencyId: Number(event.target.value) })}
-                disabled={agenciesLoading || Boolean(agenciesError) || agencies.length === 0}
+                value={form.agencyName}
+                onChange={(event) => {
+                  const selectedAgency = agencies.find((agency) => agency.name === event.target.value);
+                  setForm({
+                    ...form,
+                    agencyId: selectedAgency?.id || 0,
+                    agencyName: event.target.value,
+                  });
+                }}
+                disabled={agencies.length === 0}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-brand-500"
               >
-                {agenciesError ? (
-                  <option value={0}>Unable to load agencies</option>
-                ) : agenciesLoading || agencies.length === 0 ? (
-                  <option value={0}>Loading agencies...</option>
+                {agencies.length === 0 ? (
+                  <option value="">Loading agencies...</option>
                 ) : (
                   agencies.map((agency) => (
-                    <option key={agency.id} value={agency.id}>
+                    <option key={agency.name} value={agency.name}>
                       {agency.name}
                     </option>
                   ))
                 )}
               </select>
-              {agenciesError && <p className="text-xs text-rose-600">{agenciesError}</p>}
             </label>
             <label className="space-y-2 text-sm text-slate-700">
               Status

@@ -2,16 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Agency, Provider } from '../types';
 import { fetchAgencies, fetchProviders, deleteProvider } from '../services/api';
 import ProviderForm from '../components/ProviderForm';
+import { defaultAgencies } from '../constants/agencies';
 
 const skillOptions = ['Registered Nurse (RN)', 'Licensed Practical Nurse (LPN)', 'Physical Therapist (PT)', 'Physical Therapist Assistant (PTA)', 'Occupational Therapist (OT)', 'Occupational Therapist Assistant (OCTA)'];
 
 function Providers() {
   const [providers, setProviders] = useState<Provider[]>([]);
-  const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [agenciesLoading, setAgenciesLoading] = useState(true);
-  const [agenciesError, setAgenciesError] = useState<string | null>(null);
+  const [agencies, setAgencies] = useState<Agency[]>(defaultAgencies);
   const [search, setSearch] = useState('');
-  const [agencyId, setAgencyId] = useState('');
+  const [agency, setAgency] = useState('');
   const [skill, setSkill] = useState('');
   const [city, setCity] = useState('');
   const [zip, setZip] = useState('');
@@ -19,25 +18,20 @@ function Providers() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const loadProviders = () => {
-    fetchProviders({ search, agencyId, skill, city, zip })
+    fetchProviders({ search, agency, skill, city, zip })
       .then(setProviders)
       .catch(console.error);
   };
 
   const loadAgencies = () => {
-    setAgenciesLoading(true);
-    setAgenciesError(null);
-
     fetchAgencies()
       .then((result) => {
-        setAgencies(result);
+        if (result.length > 0) {
+          setAgencies(result);
+        }
       })
       .catch((error) => {
         console.error(error);
-        setAgenciesError(error instanceof Error ? error.message : 'Unable to load agencies. Check the backend API connection.');
-      })
-      .finally(() => {
-        setAgenciesLoading(false);
       });
   };
 
@@ -49,7 +43,7 @@ function Providers() {
   useEffect(() => {
     const timeout = setTimeout(loadProviders, 300);
     return () => clearTimeout(timeout);
-  }, [search, agencyId, skill, city, zip]);
+  }, [search, agency, skill, city, zip]);
 
   const activeCount = useMemo(() => providers.filter((item) => item.status === 'ACTIVE').length, [providers]);
   const inactiveCount = useMemo(() => providers.length - activeCount, [providers, activeCount]);
@@ -104,13 +98,13 @@ function Providers() {
             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500"
           />
           <select
-            value={agencyId}
-            onChange={(event) => setAgencyId(event.target.value)}
+            value={agency}
+            onChange={(event) => setAgency(event.target.value)}
             className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-500"
           >
             <option value="">All agencies</option>
             {agencies.map((agency) => (
-              <option key={agency.id} value={agency.id}>
+              <option key={agency.name} value={agency.name}>
                 {agency.name}
               </option>
             ))}
@@ -218,8 +212,8 @@ function Providers() {
         <ProviderForm
           providers={providers}
           agencies={agencies}
-          agenciesLoading={agenciesLoading}
-          agenciesError={agenciesError}
+          agenciesLoading={false}
+          agenciesError={null}
           provider={selectedProvider}
           onClose={() => setIsFormOpen(false)}
           onSaved={() => {

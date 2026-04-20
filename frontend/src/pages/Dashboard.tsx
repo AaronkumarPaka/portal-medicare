@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'react';
-import { fetchAgencies, fetchProviders } from '../services/api';
+import { fetchProviders } from '../services/api';
 import { Agency, Provider } from '../types';
+import { defaultAgencies } from '../constants/agencies';
 
 function Dashboard() {
-  const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>(defaultAgencies);
   const [providers, setProviders] = useState<Provider[]>([]);
 
   useEffect(() => {
-    fetchAgencies().then(setAgencies).catch(console.error);
-    fetchProviders().then(setProviders).catch(console.error);
+    fetchProviders()
+      .then((result) => {
+        setProviders(result);
+        setAgencies(
+          defaultAgencies.map((agency) => ({
+            ...agency,
+            providerCount: result.filter((provider) => provider.agency.name === agency.name).length,
+          })),
+        );
+      })
+      .catch(console.error);
   }, []);
 
   const activeCount = providers.filter((provider) => provider.status === 'ACTIVE').length;
@@ -49,11 +59,6 @@ function Dashboard() {
         ))}
       </section>
 
-      {agencies.length === 0 && (
-        <div className="rounded-3xl bg-white p-8 text-center shadow-sm">
-          <p className="text-slate-500">No agencies found yet.</p>
-        </div>
-      )}
     </div>
   );
 }

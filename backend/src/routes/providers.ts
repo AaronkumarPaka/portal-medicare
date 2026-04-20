@@ -13,13 +13,32 @@ const parseStrings = (value: any) => {
   return typeof value === 'string' ? value.split(',').map((item) => item.trim()).filter(Boolean) : [];
 };
 
+const resolveAgencyRelation = async (agencyId: any, agencyName: any) => {
+  const normalizedAgencyName = typeof agencyName === 'string' ? agencyName.trim() : '';
+
+  if (normalizedAgencyName) {
+    const existingAgency = await prisma.agency.findFirst({
+      where: { name: normalizedAgencyName },
+      select: { id: true },
+    });
+
+    if (existingAgency) {
+      return { connect: { id: existingAgency.id } };
+    }
+
+    return { create: { name: normalizedAgencyName } };
+  }
+
+  return { connect: { id: Number(agencyId) } };
+};
+
 router.get('/', async (req, res) => {
   if (!process.env.DATABASE_URL) {
     res.json([]);
     return;
   }
 
-  const { search, agencyId, skill, city, zip } = req.query;
+  const { search, agency, skill, city, zip } = req.query;
 
   const filters: any = {
     where: {
@@ -33,7 +52,15 @@ router.get('/', async (req, res) => {
               ],
             }
           : undefined,
-        agencyId ? { agencyId: Number(agencyId) } : undefined,
+        agency
+          ? {
+              agency: {
+                is: {
+                  name: { equals: String(agency), mode: 'insensitive' },
+                },
+              },
+            }
+          : undefined,
         city
           ? { areaCity: { contains: String(city), mode: 'insensitive' } }
           : undefined,
@@ -101,10 +128,13 @@ router.post('/', async (req, res) => {
     notes,
     status,
     agencyId,
+    agencyName,
     skills,
     zipCodes,
     license,
   } = req.body;
+
+  const agencyRelation = await resolveAgencyRelation(agencyId, agencyName);
 
   const provider = await prisma.provider.create({
     data: {
@@ -118,7 +148,7 @@ router.post('/', async (req, res) => {
       areaCity,
       notes,
       status: status || 'ACTIVE',
-      agency: { connect: { id: Number(agencyId) } },
+      agency: agencyRelation,
       skills: {
         create: parseStrings(skills).map((skill: string) => ({ skill })),
       },
@@ -153,10 +183,13 @@ router.put('/:id', async (req, res) => {
     notes,
     status,
     agencyId,
+    agencyName,
     skills,
     zipCodes,
     license,
   } = req.body;
+
+  const agencyRelation = await resolveAgencyRelation(agencyId, agencyName);
 
   const provider = await prisma.provider.update({
     where: { id },
@@ -171,7 +204,7 @@ router.put('/:id', async (req, res) => {
       areaCity,
       notes,
       status,
-      agency: { connect: { id: Number(agencyId) } },
+      agency: agencyRelation,
       skills: {
         deleteMany: {},
         create: parseStrings(skills).map((skill: string) => ({ skill })),
